@@ -1,0 +1,70 @@
+# gitleaks configuration — secret scanning gate for this repository.
+#
+# Usage:
+#   gitleaks dir . --redact --no-banner        # working tree
+#   gitleaks git . --redact --no-banner        # full history
+#
+# This CLI holds no provider credentials by design: the backend proxy owns every
+# provider key, and the only secret that reaches this process is the user's own
+# bearer token, which lives in the OS keychain or an owner-only config file. So
+# the scan's job here is narrow — keep it possible to run with --exit-code 1, so
+# that a NEW token-shaped literal is a hard failure rather than one more line in
+# an already-red report.
+#
+# Deliberately NOT allowlisted: every Go source path, config.toml.example and
+# mcp.json.example. Those are exactly where a regression would land.
+
+[extend]
+# Inherit the upstream rule set; this file only narrows false positives.
+useDefault = true
+
+[[allowlists]]
+description = """
+Generated or downloaded trees, never authored here, plus go.sum: a finding
+inside them is not a source-code leak.
+"""
+paths = [
+  '''(^|/)go\.sum$''',
+  '''(^|/)\.tmp/''',
+  '''(^|/)out/''',
+]
+
+[[allowlists]]
+description = """
+Stopwords for obvious placeholder secrets. These match the extracted secret
+rather than the line, which is what covers the token-shaped literals in the MCP
+tests (internal/mcp/stdio_test.go, mcp_cmd_test.go): those assert that a
+third-party server process never sees a credential, so they must set variables
+that look like credentials. Every such value carries "dummy" for this reason.
+
+If you add a placeholder convention, add it here, not to `paths`.
+"""
+stopwords = [
+  '''dummy''',
+  '''must_not_leak''',
+  '''must-not-leak''',
+  '''replace-me''',
+  '''replaceme''',
+  '''changeme''',
+  '''change-me''',
+  '''your-''',
+  '''example.com''',
+  '''xxxxxxxx''',
+]
+
+[[allowlists]]
+description = """
+Test fixtures for token handling. clientcfg's tests verify that a token is kept
+out of the config file and read back from the keychain, which requires a literal
+of the real shape (`qeuro_live_` prefix). settings_test.go's "stolen" value is
+the negative case: a project-level file must not be able to set a token.
+
+The allowlist matches on the suffix being a lowercase word describing the test's
+intent, or a short hex run — never the mixed-case, high-entropy body a real
+token has. A pasted live token therefore still fails the scan.
+"""
+regexTarget = "line"
+regexes = [
+  '''qeuro_live_(?:[a-z]+_)*[a-z]+(?:["'\s]|$)''',
+  '''qeuro_live_[0-9a-f]{1,32}(?:["'\s]|$)''',
+]

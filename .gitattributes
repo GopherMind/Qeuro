@@ -1,0 +1,4 @@
+# Normalize to LF in the repository. Go tooling, gofmt and the golden-file tests
+# compare exact bytes, so a CRLF checkout on Windows would make `gofmt -l` and
+# the transcript fixtures disagree with what is committed.
+* text=auto eol=lf
