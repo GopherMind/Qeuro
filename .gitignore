@@ -1,0 +1,17 @@
+# Secrets / local config — never commit.
+.env
+*.local.env
+
+# Build artifacts
+/out
+qeuro
+qeuro.exe
+*.exe
+
+# Go test/coverage
+*.out
+coverage.txt
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

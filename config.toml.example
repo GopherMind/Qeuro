@@ -1,0 +1,65 @@
+# Qeuro CLI configuration (roadmap §8).
+#
+# Copy to the path `qeuro config doctor` prints as "user file":
+#   Linux/macOS  ~/.config/qeuro/config.toml
+#   Windows      %AppData%\qeuro\config.toml
+#
+# Precedence, highest first:
+#   1. command-line flags
+#   2. environment variables (the QEURO_* name beside each key below)
+#   3. ./.qeuro.toml         — per repository, committable
+#   4. this file             — per user
+#   5. built-in defaults
+#
+# `qeuro config doctor` prints every setting, which layer supplied it, and the
+# file and line it came from. Run it when a value is not what you expect.
+#
+# Format: a flat list of `key = value`. Tables, arrays and dotted keys are
+# rejected with an error rather than ignored, so a construct that does not work
+# tells you instead of silently holding the default. Single quotes are literal,
+# which is the convenient form for Windows paths: 'C:\Users\me\skills'.
+#
+# Control characters are refused, including via \u escapes. These values are
+# printed to your terminal, and an escape sequence in one could retitle the
+# window or redraw the line so `config doctor` displayed something other than
+# what is in effect.
+
+# Backend proxy address.                              QEURO_API_URL
+# base_url = "https://api.qeuro.dev"
+
+# Web console address, used by `qeuro login` signup.  QEURO_CONSOLE_URL
+# console_url = "https://console.qeuro.dev"
+
+# API token.                                          QEURO_TOKEN
+#
+# Prefer `qeuro login <token>`: it verifies the token before storing it and uses
+# the OS keychain where one is available, which this file is not.
+# token = "qeuro_live_..."
+
+# Pinned model id; omit or leave empty to let the auto-router choose.
+#                                                     QEURO_MODEL
+# Run `qeuro` and use the model selector to see the catalogue.
+# model = "anthropic/claude-sonnet-4.6"
+
+# Skip tool-approval prompts.                         QEURO_AUTO_APPROVE
+#
+# This removes the confirmation step before file writes and commands. Intended
+# for isolated runners (roadmap §5.3), not for a workstation.
+# auto_approve = false
+
+# Extra skills directory.                             QEURO_SKILLS_DIR
+# skills_dir = "/opt/qeuro/skills"
+
+
+# ---------------------------------------------------------------------------
+# ./.qeuro.toml — the per-repository file
+#
+# A project file may only set `model`. Everything else is refused there, and
+# `qeuro config doctor` reports the refusal with the file and line.
+#
+# The reason is that this file arrives with a `git clone`: the CLI reads it
+# before you have looked at the repository. A repository that could set
+# `base_url` would redirect your bearer token and every prompt to a host of its
+# choosing; one that could set `auto_approve` would remove the approval gate
+# before its own code ran; one that could set `skills_dir` would be supplying
+# model instructions. Set those in this user file or in the environment.

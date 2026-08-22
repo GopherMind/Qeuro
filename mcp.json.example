@@ -1,0 +1,41 @@
+{
+  "//": "Qeuro CLI MCP servers (roadmap §4.8). Copy to ~/.config/qeuro/mcp.json (Linux/macOS) or %AppData%\\qeuro\\mcp.json (Windows). Run `qeuro mcp list` to see what was loaded and why anything was refused. Comments live in string values because JSON has none; the loader rejects unknown keys, so \"//\" at the top level would be an error — keep notes inside a server's description or outside the file.",
+
+  "servers": {
+    "github": {
+      "enabled": false,
+
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+
+      "envFrom": ["GITHUB_TOKEN"],
+
+      "allowTools": [
+        "search_repositories",
+        "get_file_contents"
+      ],
+
+      "callsPerMinute": 30
+    },
+
+    "local-docs": {
+      "enabled": false,
+      "command": "/opt/mcp/docs-server",
+      "args": ["--stdio"],
+      "dir": "/opt/mcp",
+      "env": {
+        "DOCS_ROOT": "/srv/docs"
+      },
+      "allowTools": ["search_docs"]
+    },
+
+    "hosted-tracker": {
+      "//": "A remote server over streamable HTTP. Use \"url\" instead of \"command\": an entry with both is refused, because which transport runs would be up to the reader. The URL must be https unless the host is loopback, and it must not embed credentials — put the token in an environment variable and name it in \"authFrom\", so this file stays safe to commit. args, dir, env and envFrom are stdio-only and are ignored here: there is no child process to give an environment to.",
+      "enabled": false,
+      "url": "https://mcp.example.com/mcp",
+      "authFrom": "TRACKER_MCP_TOKEN",
+      "allowTools": ["list_tickets"],
+      "callsPerMinute": 20
+    }
+  }
+}
